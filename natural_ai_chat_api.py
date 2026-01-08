@@ -41,25 +41,16 @@ class NaturalAIChatAPI:
         if is_continuation and len(self.conversation_history) > 0:
             start_turn = len(self.conversation_history) + 1
             
-            # 前回の最後のAIを確認
-            last_ai = self.conversation_history[-1]['ai']
-            ai_order = ["GPT-4", "Claude", "Gemini"]
-            
-            # 前回の最後のAIの次から開始
-            if last_ai in ai_order:
-                last_index = ai_order.index(last_ai)
-                ai_order = ai_order[last_index+1:] + ai_order[:last_index+1]
-            
             # 追加の会話ターン
-            full_order = ai_order * ((turns - 1) // 3 + 1)
+            ai_order = ["Claude", "Gemini", "GPT-4"] * ((turns - 1) // 3 + 1)
             
-            for i, ai_name in enumerate(full_order[:turns-1], start=start_turn):
+            for i, ai_name in enumerate(ai_order[:turns-1], start=start_turn):
                 await asyncio.sleep(1)  # 1秒待機（レート制限対策）
                 await self._add_turn(ai_name, topic, turn_num=i, total_turns=start_turn + turns - 1)
             
             # 最後のターン: 結論
             await asyncio.sleep(1)
-            final_ai = full_order[turns-2] if turns > 1 else ai_order[0]
+            final_ai = ai_order[turns-2] if turns > 1 else "GPT-4"
             await self._add_turn(final_ai, topic, turn_num=start_turn + turns, total_turns=start_turn + turns, is_final=True)
         else:
             # 通常の新規会話
