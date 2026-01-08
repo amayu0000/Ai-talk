@@ -1,0 +1,10 @@
+# プロジェクトディレクトリに移動
+cd /Users/amagasaki/Documents/apps/ai-talk
+
+# 開発サーバー起動
+npm run dev
+
+# git push
+git add .
+git commit -m "Fix: 修正"
+git push
