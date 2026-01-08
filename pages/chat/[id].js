@@ -144,6 +144,9 @@ export default function ChatPage() {
       abortController.abort();
       setIsLoading(false);
 
+      // 専用のstop APIも呼ぶ
+      fetch('/api/stop', { method: 'POST' }).catch(console.error);
+
       const stopMessage = {
         ai: 'System',
         message: '⏹ 会話を停止しました',

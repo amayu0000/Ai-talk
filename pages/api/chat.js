@@ -1,5 +1,5 @@
 // pages/api/chat.js
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 
 export default async function handler(req, res) {
@@ -21,13 +21,22 @@ export default async function handler(req, res) {
   res.write(': connected\n\n');
   res.flush();
 
+  let pythonProcess = null;
+
   try {
     const pythonScript = path.join(process.cwd(), 'natural_ai_chat_api.py');
-    const child = exec(`python3 -u ${pythonScript} "${topic}" ${turns} ${conversationId || ''} ${isContinuation || false}`);
 
-    let pythonProcess = child;
+    // spawnを使用（execよりプロセス制御が確実）
+    pythonProcess = spawn('python3', [
+      '-u',
+      pythonScript,
+      topic,
+      turns.toString(),
+      conversationId || '',
+      isContinuation ? 'true' : 'false'
+    ]);
 
-    child.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data) => {
       const lines = data.toString().split('\n');
       lines.forEach(line => {
         if (line.trim()) {
@@ -37,34 +46,47 @@ export default async function handler(req, res) {
       });
     });
 
-    child.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', (data) => {
       console.error('Python error:', data.toString());
     });
 
-    child.on('close', (code) => {
+    pythonProcess.on('close', (code) => {
+      console.log(`Python process exited with code ${code}`);
       if (code === 0) {
         res.write('data: [DONE]\n\n');
       } else {
         res.write(`data: {"error": "Process exited with code ${code}"}\n\n`);
       }
-      res.end();
+      if (!res.writableEnded) {
+        res.end();
+      }
     });
 
+    // クライアント切断時にプロセスをkill
     req.on('close', () => {
+      console.log('Client disconnected, killing Python process...');
       if (pythonProcess && !pythonProcess.killed) {
         pythonProcess.kill('SIGTERM');
+
+        // 1秒待ってもまだ生きてたら強制終了
         setTimeout(() => {
           if (pythonProcess && !pythonProcess.killed) {
+            console.log('Force killing Python process...');
             pythonProcess.kill('SIGKILL');
           }
         }, 1000);
       }
-      res.end();
+
+      if (!res.writableEnded) {
+        res.end();
+      }
     });
 
   } catch (error) {
     console.error('Error:', error);
     res.write(`data: {"error": "${error.message}"}\n\n`);
-    res.end();
+    if (!res.writableEnded) {
+      res.end();
+    }
   }
 }
