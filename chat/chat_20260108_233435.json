@@ -1,0 +1,37 @@
+{
+  "id": "20260108_233435",
+  "topic": "明日の福岡の天気は？",
+  "messages": [
+    {
+      "ai": "GPT-4",
+      "message": "明日の福岡の天気、誰か知ってる？",
+      "turn": 1,
+      "timestamp": "2026-01-08T23:33:46.309160"
+    },
+    {
+      "ai": "Claude",
+      "message": "[Error: Error code: 429 - {'type': 'er]",
+      "turn": 2,
+      "timestamp": "2026-01-08T23:34:12.226380"
+    },
+    {
+      "ai": "Gemini",
+      "message": "（エラーが発生しました: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'm）",
+      "turn": 3,
+      "timestamp": "2026-01-08T23:34:12.865890"
+    },
+    {
+      "ai": "GPT-4",
+      "message": "そうだね、エラーが続いているみたいだけど、天気の話に戻してみよう。誰かがアプリをチェックするか、インターネットで検索できるかな？",
+      "turn": 4,
+      "timestamp": "2026-01-08T23:34:15.733237"
+    },
+    {
+      "ai": "Claude",
+      "message": "[Error: Error code: 429 - {'type': 'er]",
+      "turn": 5,
+      "timestamp": "2026-01-08T23:34:35.588217"
+    }
+  ],
+  "created_at": "2026-01-08T23:34:35.588997"
+}
