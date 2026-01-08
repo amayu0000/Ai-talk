@@ -37,13 +37,39 @@ class NaturalAIChatAPI:
         if conversation_id:
             await self.load_conversation(conversation_id)
         
-        # 続きモードの場合、最初のターンをスキップして中盤から開始
+        # 続きモードの場合、ユーザーの質問を履歴に追加してから続ける
         if is_continuation and len(self.conversation_history) > 0:
+            # ユーザーの質問を会話履歴に追加
+            user_message = {
+                'ai': 'You',
+                'message': topic,
+                'turn': len(self.conversation_history) + 1,
+                'timestamp': datetime.now().isoformat()
+            }
+            self.conversation_history.append(user_message)
+            self.send_event('message', user_message)
+            
             start_turn = len(self.conversation_history) + 1
             
-            # 追加の会話ターン
-            ai_order = ["Claude", "Gemini", "GPT-4"] * ((turns - 1) // 3 + 1)
+            # 前回の最後のAIを確認して、次のAIから開始
+            last_ai_index = -2  # ユーザーメッセージの1つ前
+            for i in range(len(self.conversation_history) - 1, -1, -1):
+                if self.conversation_history[i]['ai'] != 'You':
+                    last_ai = self.conversation_history[i]['ai']
+                    break
+            else:
+                last_ai = "Gemini"  # デフォルト
             
+            ai_sequence = ["GPT-4", "Claude", "Gemini"]
+            
+            # 最後のAIの次から開始
+            try:
+                last_index = ai_sequence.index(last_ai)
+                ai_order = (ai_sequence[last_index+1:] + ai_sequence[:last_index+1]) * ((turns - 1) // 3 + 1)
+            except ValueError:
+                ai_order = ["GPT-4", "Claude", "Gemini"] * ((turns - 1) // 3 + 1)
+            
+            # 追加の会話ターン
             for i, ai_name in enumerate(ai_order[:turns-1], start=start_turn):
                 await asyncio.sleep(1)  # 1秒待機（レート制限対策）
                 await self._add_turn(ai_name, topic, turn_num=i, total_turns=start_turn + turns - 1)
