@@ -13,16 +13,15 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [abortController, setAbortController] = useState(null);
+  const [isComposing, setIsComposing] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (id === 'new') {
-      // 新規会話
       inputRef.current?.focus();
     } else {
-      // 既存会話を読み込み
       loadConversation(id);
     }
   }, [id]);
@@ -54,10 +53,27 @@ export default function ChatPage() {
     if (!currentTopic.trim() || isLoading) return;
 
     setIsLoading(true);
-    if (!topic) setTopic(currentTopic);
+
+    const isContinuation = topic && conversationId;
+
+    if (isContinuation) {
+      const userMessage = {
+        ai: 'You',
+        message: inputText,
+        timestamp: new Date().toISOString(),
+        isUser: true
+      };
+      setMessages(prev => [...(prev || []), userMessage]);
+    }
+
+    const actualTopic = isContinuation ? `${topic}（追加質問: ${inputText}）` : currentTopic;
+
+    if (!topic) {
+      setTopic(currentTopic);
+    }
+
     setInputText('');
 
-    // AbortController作成
     const controller = new AbortController();
     setAbortController(controller);
 
@@ -66,9 +82,10 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: currentTopic,
+          topic: actualTopic,
           turns: turns,
-          conversationId: conversationId
+          conversationId: isContinuation ? conversationId : null,
+          isContinuation: isContinuation
         }),
         signal: controller.signal
       });
@@ -97,7 +114,7 @@ export default function ChatPage() {
               const event = JSON.parse(data);
 
               if (event.type === 'message') {
-                setMessages(prev => [...prev, event.data]);
+                setMessages(prev => [...(prev || []), event.data]);
               } else if (event.type === 'complete') {
                 setConversationId(event.data.conversation_id);
                 if (id === 'new') {
@@ -105,7 +122,7 @@ export default function ChatPage() {
                 }
               }
             } catch (e) {
-              // JSON parse error - skip
+              // JSON parse error
             }
           }
         }
@@ -126,12 +143,19 @@ export default function ChatPage() {
     if (abortController) {
       abortController.abort();
       setIsLoading(false);
+
+      const stopMessage = {
+        ai: 'System',
+        message: '⏹ 会話を停止しました',
+        timestamp: new Date().toISOString(),
+        isSystem: true
+      };
+      setMessages(prev => [...(prev || []), stopMessage]);
     }
   };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="flex items-center px-4 py-3">
           <button
@@ -149,41 +173,45 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* メッセージエリア */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && !topic && (
+        {(!messages || messages.length === 0) && !topic && (
           <div className="text-center py-20">
             <p className="text-6xl mb-4">💬</p>
             <p className="text-gray-500 mb-2">AIたちと会話を始めよう</p>
-            <p className="text-sm text-gray-400">
-              お題を入力してください
-            </p>
+            <p className="text-sm text-gray-400">お題を入力してください</p>
           </div>
         )}
 
-        {messages.map((msg, idx) => (
+        {messages && messages.map((msg, idx) => (
           <div key={idx} className="mb-4">
-            {/* AIアバター */}
-            <div className="flex items-start gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAIColor(msg.ai)}`}>
-                {getAIInitial(msg.ai)}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {msg.ai}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {formatTime(msg.timestamp)}
-                  </span>
-                </div>
-                <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
-                  <p className="text-gray-900 whitespace-pre-wrap break-words">
-                    {msg.message}
-                  </p>
+            {msg.isSystem ? (
+              <div className="flex justify-center">
+                <div className="bg-gray-200 rounded-full px-4 py-2">
+                  <p className="text-gray-600 text-sm">{msg.message}</p>
                 </div>
               </div>
-            </div>
+            ) : msg.isUser ? (
+              <div className="flex justify-end">
+                <div className="bg-blue-500 rounded-2xl rounded-tr-none px-4 py-3 shadow-sm max-w-[80%]">
+                  <p className="text-white whitespace-pre-wrap break-words">{msg.message}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAIColor(msg.ai)}`}>
+                  {getAIInitial(msg.ai)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-sm font-semibold text-gray-900">{msg.ai}</span>
+                    <span className="text-xs text-gray-400">{formatTime(msg.timestamp)}</span>
+                  </div>
+                  <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+                    <p className="text-gray-900 whitespace-pre-wrap break-words">{msg.message}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
@@ -205,9 +233,7 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 入力エリア */}
       <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom">
-        {/* ターン数設定（会話開始前のみ） */}
         {!topic && (
           <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
             <span>往復数:</span>
@@ -230,8 +256,14 @@ export default function ChatPage() {
               ref={inputRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={(e) => {
+                setIsComposing(false);
+                setInputText(e.target.value);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
+                  if (isComposing) return;
                   e.preventDefault();
                   if (!isLoading) startChat(e);
                 }
@@ -267,9 +299,8 @@ export default function ChatPage() {
         .safe-bottom {
           padding-bottom: env(safe-area-inset-bottom);
         }
-        
         textarea {
-          font-size: 16px; /* iOS zoom防止 */
+          font-size: 16px;
         }
       `}</style>
     </div>
