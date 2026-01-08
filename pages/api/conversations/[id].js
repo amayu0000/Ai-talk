@@ -150,6 +150,15 @@ export default function ChatPage() {
     if (abortController) {
       abortController.abort();
       setIsLoading(false);
+
+      // 停止メッセージを表示
+      const stopMessage = {
+        ai: 'System',
+        message: '⏹ 会話を停止しました',
+        timestamp: new Date().toISOString(),
+        isSystem: true
+      };
+      setMessages(prev => [...prev, stopMessage]);
     }
   };
 
@@ -187,7 +196,16 @@ export default function ChatPage() {
 
         {messages && messages.map((msg, idx) => (
           <div key={idx} className="mb-4">
-            {msg.isUser ? (
+            {msg.isSystem ? (
+              // システムメッセージ（中央）
+              <div className="flex justify-center">
+                <div className="bg-gray-200 rounded-full px-4 py-2">
+                  <p className="text-gray-600 text-sm">
+                    {msg.message}
+                  </p>
+                </div>
+              </div>
+            ) : msg.isUser ? (
               // ユーザーのメッセージ（右側）
               <div className="flex justify-end">
                 <div className="bg-blue-500 rounded-2xl rounded-tr-none px-4 py-3 shadow-sm max-w-[80%]">
