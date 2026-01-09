@@ -16,9 +16,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* iOS Safari対応 */
+/* iOS Safari対応 - セーフエリア確保 */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* iOS Safari対応 - 画面いっぱいに表示 */
 @supports (-webkit-touch-callout: none) {
+  html {
+    height: -webkit-fill-available;
+  }
+
   body {
+    min-height: 100vh;
     min-height: -webkit-fill-available;
   }
 }

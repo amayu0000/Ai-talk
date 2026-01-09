@@ -242,21 +242,18 @@ export default function ChatPage() {
       </div>
 
       <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom">
-        {!topic && (
-          <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
-            <span>往復数:</span>
-            <select
-              value={turns}
-              onChange={(e) => setTurns(Number(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1"
-            >
-              <option value={5}>5往復</option>
-              <option value={10}>10往復</option>
-              <option value={15}>15往復</option>
-              <option value={20}>20往復</option>
-            </select>
-          </div>
-        )}
+        <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
+          <span>往復数:</span>
+          <input
+            type="number"
+            value={turns}
+            onChange={(e) => setTurns(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+            min="1"
+            max="50"
+            className="border border-gray-300 rounded px-3 py-1 w-20 text-center"
+          />
+          <span className="text-xs text-gray-400">(1〜50)</span>
+        </div>
 
         <form onSubmit={startChat} className="flex items-end gap-2">
           <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
@@ -305,7 +302,7 @@ export default function ChatPage() {
 
       <style jsx>{`
         .safe-bottom {
-          padding-bottom: env(safe-area-inset-bottom);
+          padding-bottom: max(env(safe-area-inset-bottom), 12px);
         }
         textarea {
           font-size: 16px;

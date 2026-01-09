@@ -137,7 +137,8 @@ class NaturalAIChatAPI:
     async def _gemini_turn(self, topic: str, turn_num: int, total_turns: int, 
                           is_first: bool, is_final: bool, progress: float) -> str:
         """Geminiのターン"""
-        recent = self._format_history()
+        # 最終ターンは全履歴、それ以外は最近10件
+        recent = self._format_history(n=None if is_final else 10)
         
         prompt = self._build_prompt(
             topic=topic,
@@ -162,7 +163,8 @@ class NaturalAIChatAPI:
     async def _gpt_claude_turn(self, ai_name: str, topic: str, turn_num: int, total_turns: int,
                                is_first: bool, is_final: bool, progress: float) -> str:
         """GPT-4/Claudeのターン"""
-        recent = self._format_history()
+        # 最終ターンは全履歴、それ以外は最近10件
+        recent = self._format_history(n=None if is_final else 10)
         
         prompt = self._build_prompt(
             topic=topic,
@@ -264,9 +266,12 @@ class NaturalAIChatAPI:
 
 ※「A:」「B:」などの記号は不要"""
     
-    def _format_history(self, n: int = 5) -> str:
-        """最近の会話履歴"""
-        recent = self.conversation_history[-n:]
+    def _format_history(self, n: int = None) -> str:
+        """会話履歴（nがNoneなら全件、指定があれば最近n件）"""
+        if n is None:
+            recent = self.conversation_history
+        else:
+            recent = self.conversation_history[-n:]
         return "\n".join([f"{m['ai']}: {m['message']}" for m in recent])
     
     async def _call_gpt(self, prompt: str, max_tokens: int) -> str:
