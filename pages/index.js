@@ -25,7 +25,7 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <h1 className="text-xl font-bold text-gray-900">
-            💬 AI Chat
+            AI Chat
           </h1>
         </div>
       </header>
@@ -37,7 +37,6 @@ export default function Home() {
           <div className="bg-white border-b border-gray-200 p-4 hover:bg-gray-50 cursor-pointer transition">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl">
-                ✨
               </div>
               <div className="flex-1">
                 <h2 className="font-semibold text-gray-900">新しい会話を始める</h2>
@@ -59,9 +58,6 @@ export default function Home() {
             <Link key={conv.id} href={`/chat/${conv.id}`}>
               <div className="bg-white border-b border-gray-200 p-4 hover:bg-gray-50 cursor-pointer transition">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-                    🤖
-                  </div>
                   <div className="flex-1 min-w-0">
                     <h2 className="font-semibold text-gray-900 truncate">
                       {conv.topic}
@@ -99,15 +95,15 @@ function formatDate(dateStr) {
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now - date;
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return '今';
   if (minutes < 60) return `${minutes}分前`;
   if (hours < 24) return `${hours}時間前`;
   if (days < 7) return `${days}日前`;
-  
+
   return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
 }

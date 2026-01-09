@@ -163,12 +163,12 @@ export default function ChatPage() {
         <div className="flex items-center px-4 py-3">
           <button
             onClick={() => router.push('/')}
-            className="mr-4 text-blue-500 text-lg"
+            className="mr-4 text-blue-500 text-lg flex-shrink-0"
           >
             ‹
           </button>
-          <div className="flex-1">
-            <h1 className="font-semibold text-gray-900 truncate">
+          <div className="flex-1 min-w-0">
+            <h1 className="font-semibold text-gray-900 break-words">
               {topic || '新しい会話'}
             </h1>
             <p className="text-xs text-gray-500">GPT-4, Claude, Gemini</p>
