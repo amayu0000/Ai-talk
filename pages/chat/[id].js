@@ -185,38 +185,43 @@ export default function ChatPage() {
           </div>
         )}
 
-        {messages && messages.map((msg, idx) => (
-          <div key={idx} className="mb-4">
-            {msg.isSystem ? (
-              <div className="flex justify-center">
-                <div className="bg-gray-200 rounded-full px-4 py-2">
-                  <p className="text-gray-600 text-sm">{msg.message}</p>
-                </div>
-              </div>
-            ) : msg.isUser ? (
-              <div className="flex justify-end">
-                <div className="bg-blue-500 rounded-2xl rounded-tr-none px-4 py-3 shadow-sm max-w-[80%]">
-                  <p className="text-white whitespace-pre-wrap break-words">{msg.message}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start gap-2">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAIColor(msg.ai)}`}>
-                  {getAIInitial(msg.ai)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-sm font-semibold text-gray-900">{msg.ai}</span>
-                    <span className="text-xs text-gray-400">{formatTime(msg.timestamp)}</span>
-                  </div>
-                  <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
-                    <p className="text-gray-900 whitespace-pre-wrap break-words">{msg.message}</p>
+        {messages && messages.map((msg, idx) => {
+          // Pythonから返ってくる'You'メッセージはスキップ（既にisUser=trueで表示済み）
+          if (msg.ai === 'You' && !msg.isUser) return null;
+
+          return (
+            <div key={idx} className="mb-4">
+              {msg.isSystem ? (
+                <div className="flex justify-center">
+                  <div className="bg-gray-200 rounded-full px-4 py-2">
+                    <p className="text-gray-600 text-sm">{msg.message}</p>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              ) : msg.isUser ? (
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 rounded-2xl rounded-tr-none px-4 py-3 shadow-sm max-w-[80%]">
+                    <p className="text-white whitespace-pre-wrap break-words">{msg.message}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAIColor(msg.ai)}`}>
+                    {getAIInitial(msg.ai)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-sm font-semibold text-gray-900">{msg.ai}</span>
+                      <span className="text-xs text-gray-400">{formatTime(msg.timestamp)}</span>
+                    </div>
+                    <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+                      <p className="text-gray-900 whitespace-pre-wrap break-words">{msg.message}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {isLoading && (
           <div className="flex items-start gap-2 mb-4">
