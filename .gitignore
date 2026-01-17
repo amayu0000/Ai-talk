@@ -1,4 +1,8 @@
 node_modules/
 .next/
 .env
+.env.local
+chat/
+__pycache__/
+*.pyc
 .DS_Store
