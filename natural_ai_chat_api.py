@@ -15,7 +15,7 @@ load_dotenv()
 
 from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
-import google.generativeai as genai
+from google import genai
 
 class NaturalAIChatAPI:
     """API用チャット（元のロジックをそのまま使用）"""
